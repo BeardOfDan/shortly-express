@@ -1,17 +1,17 @@
 const parseCookies = (req, res, next) => {
   var cookie = req.headers.cookie;
 
-  req.cookie = {};
+  // console.log('\n\nreq.headers:\n', req.headers, '\n\n');
 
-  if (cookie === undefined) {
-    next ();
+  req.cookies = {};
+
+  if (cookie !== undefined) { // get the data from the cookie
+    var cookieArr = cookie.split(';');
+    cookieArr.forEach (function (element) {
+      var cookieTuple = element.split('=');
+      req.cookies[cookieTuple[0].trim()] = cookieTuple[1].trim();
+    });
   }
-
-  var cookieArr = cookie.split(';');
-  cookieArr.forEach (function (element) {
-    var cookieTuple = element.split('=');
-    req.cookie[cookieTuple[0]] = cookieTuple[1];
-  });
 
   next();
 };

@@ -104,7 +104,7 @@ app.get('/logout', Auth.logout, Auth.verifySession, (req, res, next) => {
 // ===== POST ROUTES =====
 // =======================
 
-app.post('/login', Auth.validLogin, Auth.createCookie, parseCookies, Auth.createSession, (req, res, next) => {
+app.post('/login', Auth.validateLogin, Auth.createCookie, parseCookies, Auth.createSession, (req, res, next) => {
   // res.writeHead({'statusCode': 201});
 
 
