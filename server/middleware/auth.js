@@ -9,16 +9,7 @@ module.exports.createSession = (req, res, next) => {
     
   // create a cookie / session
 
-  let id = req.body.id;
   
-
-  // do stuff with id
-
-
-  // then if valid(next())
-  // else, res.redirect(login);
-
-
   console.log('in create session');
   console.log('req.body', req.body);
 
@@ -50,25 +41,18 @@ module.exports.validateSession = (req, res, next) => {
 
 
 module.exports.createUser = (req, res, next) => {
-
-  // console.log('in create user', '\n');
-  // console.log('req.body', req.body);
-
-  console.log('\n-------------------\n');
-
-
-  console.log('users.get', Users.get({username: req.body.username}));
-
-  if (Users.get({username: req.body.username}) !== undefined) {
-    console.log('req.body.username', req.body.username);
-    res.redirect('/login');
-  } else {
-    console.log('about to create this new user...');
-    const queryResult = Users.create ({username: req.body.username, password: req.body.password});
-
-    console.log('queryResult', queryResult);
-
-    next();
-  }
+  models.Users.get({'username': req.body.username})
+    .then(user => {
+      if (user === undefined) {
+        models.Users.create({username: req.body.username, password: req.body.password});
+        next();
+      } else {
+        res.redirect('/login');
+      }
+    })
+    .catch((e) => {
+      console.log('Error:', e);
+      res.redirect('/');
+    });
 };
 

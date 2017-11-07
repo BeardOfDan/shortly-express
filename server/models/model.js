@@ -2,6 +2,7 @@ const db = require('../db');
 const _ = require('lodash');
 
 const executeQuery = (query, values) => {
+  console.log('\nquery', query, '\nvalues', values, '\n');
   return db.queryAsync(query, values).spread(results => results);
 };
 
@@ -38,6 +39,7 @@ class Model {
       return executeQuery(queryString);
     }
     let parsedOptions = parseData(options);
+
     let queryString = `SELECT * FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')}`;
     return executeQuery(queryString, parsedOptions.values);
   }
@@ -54,7 +56,7 @@ class Model {
   get(options) {
     let parsedOptions = parseData(options);
     let queryString = `SELECT * FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')} LIMIT 1`;
-    return executeQuery(queryString, parsedOptions.values).then(results => results[0]);
+    return executeQuery(queryString, parsedOptions.values).then(results => results[0] );
   }
 
   /**

@@ -21,14 +21,6 @@ app.get('/', Auth.validateSession, (req, res) => {
   res.render('index');
 });
 
-app.get('/signup', (req, res) => {
-  res.render('signup.ejs');
-});
-
-app.get('/login', (req, res) => {
-  res.render('login.ejs');
-});
-
 app.get('/create', (req, res) => {
   res.render('index');
 });
@@ -41,16 +33,6 @@ app.get('/links', (req, res, next) => {
     .error(error => {
       res.status(500).send(error);
     });
-});
-
-app.post('/login', Auth.createSession, (req, res, next) => {
-  // change the below
-  res.redirect('/');
-});
-
-app.post('/signup', Auth.createUser, (req, res, next) => {
-    // change the below
-  res.redirect('/');
 });
 
 app.post('/links', (req, res, next) => {
@@ -93,6 +75,28 @@ app.post('/links', (req, res, next) => {
 /************************************************************/
 
 
+app.get('/signup', (req, res) => {
+  res.render('signup.ejs');
+});
+
+app.get('/login', (req, res) => {
+  res.render('login.ejs');
+});
+
+
+app.post('/login', Auth.createSession, (req, res, next) => {
+  // change the below
+  res.redirect('/');
+});
+
+// app.post('/signup', Auth.createUser, Auth.createSession, (req, res, next) => {
+//     // change the below
+//   res.redirect('/');
+// });
+
+app.post('/signup', Auth.createUser, Auth.createSession, (req, res, next) => {
+  res.redirect('/');
+});
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
