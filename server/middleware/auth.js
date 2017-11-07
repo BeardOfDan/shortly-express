@@ -8,7 +8,11 @@ const Users = models.Users;
 module.exports.createSession = (req, res, next) => {
     
   // create a cookie / session
-
+  //   get the hash from Users
+  //   use that and the username to make a new session
+  //   save that info in the cookie format
+  //   give the user the cookie
+  //   give req.sessions the sessions object
   
   console.log('in create session');
   console.log('req.body', req.body);
@@ -23,7 +27,7 @@ module.exports.createSession = (req, res, next) => {
 // Add additional authentication middleware functions below
 /************************************************************/
 
-module.exports.validateSession = (req, res, next) => {
+module.exports.verifySession = (req, res, next) => {
 
   // check the cookie (to make sure it exists with valid data)
 

@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 
-app.get('/', Auth.validateSession, (req, res) => {
+app.get('/', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
