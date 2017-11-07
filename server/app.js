@@ -22,10 +22,12 @@ app.use(express.static(path.join(__dirname, '../public')));
 // ======================
 
 app.get('/', Auth.verifySession, (req, res) => {
+  // res.writeHead(200);
   res.render('index');
 });
 
 app.get('/create', Auth.verifySession, (req, res) => {
+  // res.writeHead({'statusCode': 200});
   res.render('index');
 });
 
@@ -94,17 +96,23 @@ app.get('/login', (req, res) => {
   res.render('login.ejs');
 });
 
+app.get('/logout', Auth.logout, Auth.verifySession, (req, res, next) => {
+  res.redirect('/');
+});
 
 // =======================
 // ===== POST ROUTES =====
 // =======================
 
-app.post('/login', Auth.createSession, (req, res, next) => {
-  // change the below
+app.post('/login', Auth.validLogin, Auth.createCookie, parseCookies, Auth.createSession, (req, res, next) => {
+  // res.writeHead({'statusCode': 201});
+
+
   res.redirect('/');
 });
 
-app.post('/signup', Auth.createUser, parseCookies, Auth.createSession, (req, res, next) => {
+app.post('/signup', Auth.createUser, Auth.createCookie, parseCookies, Auth.createSession, (req, res, next) => {
+  // res.writeHead({'statusCode': 201});
   res.redirect('/');
 });
 

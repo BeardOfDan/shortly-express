@@ -4,6 +4,9 @@ const Users = models.Users;
 
 // NOTE: the cookie must be created before this method is invoked
 module.exports.createSession = (req, res, next) => {
+
+  console.log('inside of createSession');
+
   models.Sessions.create(req.cookie);  
   req.session = req.cookie;
   next();
@@ -14,44 +17,32 @@ module.exports.createSession = (req, res, next) => {
 /************************************************************/
 
 module.exports.verifySession = (req, res, next) => {
-  const sessionVal = models.Sessions.get(req.session);
-  if (sessionVal === undefined) { // if there is no valid session
-    res.writeHead({'Set-Cookie': null});  
+
+  console.log('inside of verifySession');
+
+  if (req.session !== undefined) { // if the request object has a session variable
+    const sessionVal = models.Sessions.get(req.session);
+    if (sessionVal === undefined) { // if there is no valid session
+      res.setHeader('Set-Cookie', null);
+      res.redirect('/login');
+    } else { // send them on their way
+      next();
+    }
+  } else { // direct them to log in
     res.redirect('/login');
-  } else { // send them on their way
-    next();
   }
+
 };
 
 module.exports.createUser = (req, res, next) => {
+
+  console.log('inside of createUser');
+
   models.Users.get({'username': req.body.username})
     .then(user => {
       if (user === undefined) { // if there is no entry for that username in the database
         models.Users.create({username: req.body.username, password: req.body.password});
-        const thisNewUser = models.Users.get({username: req.body.username});
 
-        // create cookie
-        const data = {};
-        data.hash = thisNewUser.password;
-        data.userId = thisNewUser.id;
-
-        const dataKeys = Object.keys(data);
-
-        let arr = [];
-        
-        for (let i = 0; i < dataKeys.length; i++) {
-          const crumb = dataKeys[i] + '=' + data[dataKeys[i]];
-          arr.push(crumb);
-        }    
-
-        // create the cookie
-        const cookie = arr.join(';');
-
-        // pass it along for our internal use
-        req.headers.cookie = cookie;
-
-        // pass it along for the user
-        res.writeHead({'Set-Cookie': cookie});
         next();
       } else { // that username already exists, so redirect them to log in
         res.redirect('/login');
@@ -61,6 +52,74 @@ module.exports.createUser = (req, res, next) => {
       console.log('Error:', e);
       res.redirect('/');
     });
+};
+
+module.exports.logout = (req, res, next) => {
+
+  console.log('inside of logout');
+
+  if (req.cookie !== undefined || req.session !== undefined) {
+    var userSession = models.Sessions.get(req.session);
+    if (userSession !== undefined) {
+      models.Sessions.delete(req.session);
+      res.setHeader('Set-Cookie', null);
+      next();
+    } else {
+      res.setHeader('Set-Cookie', cookie);
+      res.redirect('/login');
+    }
+  }
+};
+
+module.exports.createCookie = (req, res, next) => {
+  // create the cookie here
+  const thisNewUser = models.Users.get({username: req.body.username});
+
+    // create cookie
+  const data = {};
+  data.hash = thisNewUser.password;
+  data.userId = thisNewUser.id;
+
+  const dataKeys = Object.keys(data);
+
+  let arr = [];
+  
+  for (let i = 0; i < dataKeys.length; i++) {
+    const crumb = dataKeys[i] + '=' + data[dataKeys[i]];
+    arr.push(crumb);
+  }    
+
+  // create the cookie
+  const cookie = arr.join(';');
+
+  // pass it along for our internal use
+  req.headers.cookie = cookie;
+
+  // pass it along for the user
+  res.setHeader('Set-Cookie', cookie);
+  next();
+};
+
+module.exports.validLogin = (req, res, next) => {
+  // check if the posted info is valid user credentials
+
+
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+  // TODO
+
+
+  next();
 };
 
 

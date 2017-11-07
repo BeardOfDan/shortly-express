@@ -2,7 +2,6 @@ const db = require('../db');
 const _ = require('lodash');
 
 const executeQuery = (query, values) => {
-  console.log('\nquery', query, '\nvalues', values, '\n');
   return db.queryAsync(query, values).spread(results => results);
 };
 
