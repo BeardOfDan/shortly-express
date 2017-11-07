@@ -17,18 +17,23 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 
-app.get('/', 
-(req, res) => {
+app.get('/', Auth.validateSession, (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
-(req, res) => {
+app.get('/signup', (req, res) => {
+  res.render('signup.ejs');
+});
+
+app.get('/login', (req, res) => {
+  res.render('login.ejs');
+});
+
+app.get('/create', (req, res) => {
   res.render('index');
 });
 
-app.get('/links', 
-(req, res, next) => {
+app.get('/links', (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);
@@ -38,8 +43,17 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
-(req, res, next) => {
+app.post('/login', Auth.createSession, (req, res, next) => {
+  // change the below
+  res.redirect('/');
+});
+
+app.post('/signup', Auth.createUser, (req, res, next) => {
+    // change the below
+  res.redirect('/');
+});
+
+app.post('/links', (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
     // send back a 404 if link is not valid
