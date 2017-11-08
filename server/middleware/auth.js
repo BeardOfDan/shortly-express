@@ -1,27 +1,94 @@
 const models = require('../models');
 const Promise = require('bluebird');
 const Users = models.Users;
+const utils = require('../lib/hashUtils');
 
-// NOTE: the cookie must be created before this method is invoked
+
+
+
+// NOTE: checkForACurrentSession must be what calls this method
+//  Otherwise, this may be overwriting a currently existing session.
 module.exports.createSession = (req, res, next) => {
-  models.Sessions.create(req.cookies);  
-  req.session = req.cookies;
-  console.log('This is within the Auth.js file ' + JSON.stringify(req.cookies, undefined, 2));
-  
-  // initialize the values if there is nothing to assign to them
-  if (req.cookies.hash === undefined) {
+  // set cookie here for everywhere
+  res.cookies = {};
+  res.cookies.shortlyid = {value: 'OMG crazy default values!'};
 
-    console.log('cookies keys', Object.keys(req.cookies));
-    console.log('session keys', Object.keys(req.session));
+  const makeNewSession = () => {
+    // create the new session
+    return models.Sessions.create(req.cookies)
+        .then((result) => {
+          const sessionId = result.insertId;
+          models.Sessions.get({'id': sessionId})
+            .then(function(result) {
+              console.log('\n\nRESULT', result, '\n\n');
+              
+              // add the session property to request
+              req.session = result;
+              req.cookie = {'hash': req.session.hash, 'user': {'username': ''}, 'userId': req.session.userId};
+            });
+        });  
+  };
 
-    req.cookies = req.session = {'hash': '', 'userId': ''};
 
-    console.log('cookies keys', Object.keys(req.cookies));
-    console.log('session keys', Object.keys(req.session));
-
+  // check if the user already has a session
+    // if so, then check if that session is valid
+  if ((req.session !== undefined) && (req.session.hash !== undefined)) {
+    models.Sessions.get(req.session)
+      .then((result) => {
+        if (result !== undefined) {
+          // it's valid, so do the next thing
+          next();
+        } else {
+          // it's not valid, so create a new session
+          // createSession(req, res, next);
+          makeNewSession();
+        }
+      });
+  } else { // there is no session, so create a new session
+    // createSession(req, res, next);
+    makeNewSession();
   }
 
+
+  // ============================================================================ //
+  // much of the below code is likely invalid, or at least in need of refactoring //
+  // ============================================================================ //
+
+
+  
+  // let newSession = models.Sessions.create(req.cookies);
+  // console.log('\n\nNEWSESSION\n', newSession, '\n\n');
+
+  req.session = req.cookies;
+
+  if (req.cookies.shortlyid !== undefined) {
+    // query the db for an entry with this value as the session hash
+    // const thisSession = models.Sessions.get({'hash': req.session.hash});
+    const thisSession = models.Sessions.get();
+
+    console.log('\nSESSION\n', thisSession);
+
+    const thisUser = models.Users.get({'id': thisSession.userId});
+
+    console.log('\nTHISUSER\n', thisUser);
+
+    // set req.session to be the values form thisSession
+    req.sessions = {'hash': req.cookies.shortlyid, 'user': {'username': thisUser.username}, 'userId': thisSession.userId};
+
+    console.log('\n\n', JSON.stringify(req.sessions, undefined, 2), '\n\n');
+
+  } else {
+    // next();
+  }
+
+  // initialize the values if there is nothing to assign to them
+  if ((req.cookies.hash === undefined) && (req.cookies.shortlyid !== 'undefined')) {
+    req.cookies = req.session = {'hash': utils.createRandom32String(), user: {'username': ''}, 'userId': null};
+    req.cookies['shortlyid'] = '';
+  } 
+
   next();
+
 };
 
 /************************************************************/
@@ -82,8 +149,9 @@ module.exports.createCookie = (req, res, next) => {
 
     // create cookie
   const data = {};
-  data.hash = thisNewUser.password;
+  data.hash = utils.createRandom32String();
   data.userId = thisNewUser.id;
+  // data.uniqueSessionHash = utils.createRandom32String();
 
   const dataKeys = Object.keys(data);
 

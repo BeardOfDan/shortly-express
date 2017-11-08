@@ -384,10 +384,6 @@ describe('', function() {
 
         createSession(requestWithoutCookies, response, function() {
           var session = requestWithoutCookies.session;
-
-          console.log('\n\nINSIDE THE TEST\n');
-          console.log('session', response);
-
           expect(session).to.exist;
           expect(session).to.be.an('object');
           expect(session.hash).to.exist;
@@ -402,6 +398,7 @@ describe('', function() {
         createSession(requestWithoutCookie, response, function() {
           var cookies = response.cookies;
           expect(cookies['shortlyid']).to.exist;
+          console.log(cookies['shortlyid'].value);
           expect(cookies['shortlyid'].value).to.exist;
           done();
         });
