@@ -4,18 +4,19 @@ const Users = models.Users;
 const utils = require('../lib/hashUtils');
 
 
-
-
-// NOTE: checkForACurrentSession must be what calls this method
-//  Otherwise, this may be overwriting a currently existing session.
 module.exports.createSession = (req, res, next) => {
+  // DEFAULT VALUE COOKIES
   // set cookie here for everywhere
   res.cookies = {};
   res.cookies.shortlyid = {value: 'OMG crazy default values!'};
 
+  // this function returns a promise that creates a new session
+  // NOTE: it is in a function, because there are multiple cases below where we would execute it
+  //   when we are checking if there is currently a session 
+  //   -> When there is no current session and when the current session is invalid
   const makeNewSession = () => {
     // create the new session
-    return models.Sessions.create(req.cookies)
+    return models.Sessions.create()
         .then((result) => {
           const sessionId = result.insertId;
           models.Sessions.get({'id': sessionId})
@@ -24,7 +25,25 @@ module.exports.createSession = (req, res, next) => {
               
               // add the session property to request
               req.session = result;
+
+              // check if there is currently a cookie
+                // if so, check if it is valid
+                  // if so, then use it to get the username
+                // if not, then set it to default values
+              // else generate a new cookie
+
+              if (req.cookie !== undefined) { // there is already a cookie
+                // check if the cookie's values are valid
+                
+              } else { // there is no cookie... yet
+
+              }
+
+
               req.cookie = {'hash': req.session.hash, 'user': {'username': ''}, 'userId': req.session.userId};
+
+              // exit this piece of middleware
+              next();
             });
         });  
   };
@@ -40,12 +59,10 @@ module.exports.createSession = (req, res, next) => {
           next();
         } else {
           // it's not valid, so create a new session
-          // createSession(req, res, next);
           makeNewSession();
         }
       });
   } else { // there is no session, so create a new session
-    // createSession(req, res, next);
     makeNewSession();
   }
 
@@ -59,35 +76,35 @@ module.exports.createSession = (req, res, next) => {
   // let newSession = models.Sessions.create(req.cookies);
   // console.log('\n\nNEWSESSION\n', newSession, '\n\n');
 
-  req.session = req.cookies;
+  // req.session = req.cookies;
 
-  if (req.cookies.shortlyid !== undefined) {
-    // query the db for an entry with this value as the session hash
-    // const thisSession = models.Sessions.get({'hash': req.session.hash});
-    const thisSession = models.Sessions.get();
+  // if (req.cookies.shortlyid !== undefined) {
+  //   // query the db for an entry with this value as the session hash
+  //   // const thisSession = models.Sessions.get({'hash': req.session.hash});
+  //   const thisSession = models.Sessions.get();
 
-    console.log('\nSESSION\n', thisSession);
+  //   console.log('\nSESSION\n', thisSession);
 
-    const thisUser = models.Users.get({'id': thisSession.userId});
+  //   const thisUser = models.Users.get({'id': thisSession.userId});
 
-    console.log('\nTHISUSER\n', thisUser);
+  //   console.log('\nTHISUSER\n', thisUser);
 
-    // set req.session to be the values form thisSession
-    req.sessions = {'hash': req.cookies.shortlyid, 'user': {'username': thisUser.username}, 'userId': thisSession.userId};
+  //   // set req.session to be the values form thisSession
+  //   req.sessions = {'hash': req.cookies.shortlyid, 'user': {'username': thisUser.username}, 'userId': thisSession.userId};
 
-    console.log('\n\n', JSON.stringify(req.sessions, undefined, 2), '\n\n');
+  //   console.log('\n\n', JSON.stringify(req.sessions, undefined, 2), '\n\n');
 
-  } else {
-    // next();
-  }
+  // } else {
+  //   // next();
+  // }
 
   // initialize the values if there is nothing to assign to them
-  if ((req.cookies.hash === undefined) && (req.cookies.shortlyid !== 'undefined')) {
-    req.cookies = req.session = {'hash': utils.createRandom32String(), user: {'username': ''}, 'userId': null};
-    req.cookies['shortlyid'] = '';
-  } 
+  // if ((req.cookies.hash === undefined) && (req.cookies.shortlyid !== 'undefined')) {
+  //   req.cookies = req.session = {'hash': utils.createRandom32String(), user: {'username': ''}, 'userId': null};
+  //   req.cookies['shortlyid'] = '';
+  // } 
 
-  next();
+  // next();
 
 };
 
